@@ -17,7 +17,7 @@ function formatPing(ms) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const { type, site, categoria, limit } = req.query;
+    const { type, site, categoria } = req.query;
     const t0 = Date.now();
     try {
       if (type === 'categorias') {
