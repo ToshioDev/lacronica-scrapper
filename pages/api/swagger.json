@@ -1,0 +1,82 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "La Cronica Noticias API",
+    "version": "1.0.0",
+    "description": "API para obtener noticias de múltiples fuentes peruanas. Incluye scraping de Jornada, El Peruano y Depor."
+  },
+  "servers": [
+    { "url": "http://localhost:3000/api" }
+  ],
+  "paths": {
+    "/noticias": {
+      "get": {
+        "summary": "Obtiene noticias de una fuente específica",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["noticias"] },
+            "example": "noticias",
+            "description": "Tipo de consulta (solo 'noticias' soportado)"
+          },
+          {
+            "name": "site",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["jornada", "elperuano", "depor"] },
+            "example": "jornada",
+            "description": "Fuente de noticias: jornada, elperuano o depor"
+          },
+          {
+            "name": "categoria",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "example": "local",
+            "description": "Nombre de la categoría o URL de la sección (opcional para jornada y elperuano)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de noticias obtenidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "ping": { "type": "string" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "integer" },
+                          "title": { "type": "string" },
+                          "subtitle": { "type": "string" },
+                          "url": { "type": "string" },
+                          "source": { "type": "string" },
+                          "section": { "type": "string" },
+                          "img": { "type": "string" },
+                          "date": { "type": "string" },
+                          "summary": { "type": "string" },
+                          "contenido": { "type": "string" },
+                          "titulo_detalle": { "type": "string" },
+                          "subtitulo": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Solicitud inválida" },
+          "500": { "description": "Error interno del servidor" }
+        }
+      }
+    }
+  }
+}
