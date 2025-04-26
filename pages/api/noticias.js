@@ -47,9 +47,9 @@ export default async function handler(req, res) {
           } else {
             return res.status(400).json({ status: 'error', ping: formatPing(0), data: [], message: 'Categoría no soportada para eldepor' });
           }
-          const lim = limit ? Math.max(1, Math.min(Number(limit), 50)) : 20;
+          const lim = 10;
           const rawNoticias = await scrapeDeporCategoriaCompleto(url, lim);
-          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+          noticias = rawNoticias.slice(0, 10).map((n, idx) => ({ ...n, id: idx + 1 }));
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
             url = `https://elperuano.pe/${url}`;
           }
           const rawNoticias = await scrapeElPeruanoNoticiasDeSeccion(url);
-          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+          noticias = rawNoticias.slice(0, 10).map((n, idx) => ({ ...n, id: idx + 1 }));
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
@@ -73,12 +73,12 @@ export default async function handler(req, res) {
               catUrl = `https://jornada.com.pe/${catUrl.replace(/^\/+/, '')}/`;
             }
             const rawNoticias = await scrapeJornadaCategoriaSimple(catUrl);
-            noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+            noticias = rawNoticias.slice(0, 10).map((n, idx) => ({ ...n, id: idx + 1 }));
             const t1 = Date.now();
             return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
           }
           const rawNoticias = await scrapeJornada();
-          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+          noticias = rawNoticias.slice(0, 10).map((n, idx) => ({ ...n, id: idx + 1 }));
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
