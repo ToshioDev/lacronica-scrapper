@@ -23,8 +23,17 @@ export default async function handler(req, res) {
       if (type === 'categorias') {
         let categorias = [];
         if (site === 'elperuano') {
-          const rawCategorias = await scrapeElPeruanoCategorias();
-          categorias = rawCategorias.map((c, idx) => ({ ...c, id: idx + 1 }));
+          // Optimiza el tiempo de respuesta usando cache temporal en memoria (5 minutos)
+          if (!global._elperuanoCategoriasCache) global._elperuanoCategoriasCache = { data: null, timestamp: 0 };
+          const now = Date.now();
+          const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+          if (global._elperuanoCategoriasCache.data && (now - global._elperuanoCategoriasCache.timestamp < CACHE_DURATION)) {
+            categorias = global._elperuanoCategoriasCache.data;
+          } else {
+            const rawCategorias = await scrapeElPeruanoCategorias();
+            categorias = rawCategorias.map((c, idx) => ({ ...c, id: idx + 1 }));
+            global._elperuanoCategoriasCache = { data: categorias, timestamp: now };
+          }
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: categorias });
         }
