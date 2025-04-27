@@ -62,12 +62,26 @@ export default async function handler(req, res) {
             url = 'https://depor.com/futbol-peruano/';
           } else if (categoria === 'internacional') {
             url = 'https://depor.com/futbol-internacional/';
+          } else if (categoria && categoria.startsWith('http')) {
+            url = categoria;
+          } else if (categoria) {
+            url = `https://depor.com/${categoria.replace(/^\/+/, '')}/`;
           } else {
-            return res.status(400).json({ status: 'error', ping: formatPing(0), data: [], message: 'Categoría no soportada para eldepor' });
+            return res.status(400).json({ status: 'error', ping: formatPing(0), data: [], message: 'Debes proporcionar la categoría o URL de sección para depor' });
           }
           const lim = limit ? Math.max(1, Math.min(Number(limit), 50)) : 20;
-          const rawNoticias = await scrapeDeporCategoriaCompleto(url, lim);
-          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+          // Cache para noticias de depor
+          if (!global._deporNoticiasCache) global._deporNoticiasCache = {};
+          const cacheKey = `${url}|${lim}`;
+          const now = Date.now();
+          const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+          if (global._deporNoticiasCache[cacheKey] && (now - global._deporNoticiasCache[cacheKey].timestamp < CACHE_DURATION)) {
+            noticias = global._deporNoticiasCache[cacheKey].data;
+          } else {
+            const rawNoticias = await scrapeDeporCategoriaCompleto(url, lim);
+            noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+            global._deporNoticiasCache[cacheKey] = { data: noticias, timestamp: now };
+          }
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
@@ -80,20 +94,40 @@ export default async function handler(req, res) {
             url = `https://elperuano.pe/${url}`;
           }
           const lim = limit ? Math.max(1, Math.min(Number(limit), 50)) : 20;
-          const rawNoticias = await scrapeElPeruanoNoticiasDeSeccion(url, lim);
-          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+          // Cache para noticias de elperuano
+          if (!global._elperuanoNoticiasCache) global._elperuanoNoticiasCache = {};
+          const cacheKey = `${url}|${lim}`;
+          const now = Date.now();
+          const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+          if (global._elperuanoNoticiasCache[cacheKey] && (now - global._elperuanoNoticiasCache[cacheKey].timestamp < CACHE_DURATION)) {
+            noticias = global._elperuanoNoticiasCache[cacheKey].data;
+          } else {
+            const rawNoticias = await scrapeElPeruanoNoticiasDeSeccion(url, lim);
+            noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+            global._elperuanoNoticiasCache[cacheKey] = { data: noticias, timestamp: now };
+          }
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
         if (site === 'jornada') {
           if (categoria) {
             let catUrl = categoria;
-            if (!/^https?:\/\//.test(catUrl)) {
+            if (!/^https?:\/+/.test(catUrl)) {
               catUrl = `https://jornada.com.pe/${catUrl.replace(/^\/+/, '')}/`;
             }
             const lim = limit ? Math.max(1, Math.min(Number(limit), 50)) : 20;
-            const rawNoticias = await scrapeJornadaCategoriaSimple(catUrl, lim);
-            noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+            // Cache para noticias de jornada
+            if (!global._jornadaNoticiasCache) global._jornadaNoticiasCache = {};
+            const cacheKey = `${catUrl}|${lim}`;
+            const now = Date.now();
+            const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+            if (global._jornadaNoticiasCache[cacheKey] && (now - global._jornadaNoticiasCache[cacheKey].timestamp < CACHE_DURATION)) {
+              noticias = global._jornadaNoticiasCache[cacheKey].data;
+            } else {
+              const rawNoticias = await scrapeJornadaCategoriaSimple(catUrl, lim);
+              noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
+              global._jornadaNoticiasCache[cacheKey] = { data: noticias, timestamp: now };
+            }
             const t1 = Date.now();
             return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
           }
