@@ -3,7 +3,8 @@ import {
   scrapeDeporCategoriaCompleto,
   scrapeElPeruanoNoticiasDeSeccion,
   scrapeJornada,
-  scrapeJornadaCategoriaSimple
+  scrapeJornadaCategoriaSimple,
+  scrapeJornadaCategorias
 } from '../../lib/newsScrapers';
 import { launchBrowser } from '../../lib/puppeteerLauncher';
 
@@ -28,8 +29,7 @@ export default async function handler(req, res) {
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: categorias });
         }
         if (site === 'jornada') {
-          // scrapeJornadaCategoriasSimple ya no existe, así que deberías usar scrapeJornadaCategorias
-          const rawCategorias = await scrapeJornadaCategorias ? await scrapeJornadaCategorias() : [];
+          const rawCategorias = await scrapeJornadaCategorias();
           categorias = rawCategorias.map((c, idx) => ({ ...c, id: idx + 1 }));
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: categorias });
