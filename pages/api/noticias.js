@@ -1,6 +1,5 @@
 import {
   scrapeElPeruanoCategorias,
-  scrapeJornadaCategoriasSimple,
   scrapeDeporCategoriaCompleto,
   scrapeElPeruanoNoticiasDeSeccion,
   scrapeJornada,
@@ -29,7 +28,8 @@ export default async function handler(req, res) {
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: categorias });
         }
         if (site === 'jornada') {
-          const rawCategorias = await scrapeJornadaCategoriasSimple();
+          // scrapeJornadaCategoriasSimple ya no existe, así que deberías usar scrapeJornadaCategorias
+          const rawCategorias = await scrapeJornadaCategorias ? await scrapeJornadaCategorias() : [];
           categorias = rawCategorias.map((c, idx) => ({ ...c, id: idx + 1 }));
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: categorias });
@@ -38,7 +38,6 @@ export default async function handler(req, res) {
       }
       if (type === 'noticias') {
         let noticias = [];
-        const lim = limit ? Math.max(1, Math.min(Number(limit), 50)) : 20;
         if (site === 'eldepor') {
           let url = '';
           if (categoria === 'peruano') {
@@ -48,6 +47,7 @@ export default async function handler(req, res) {
           } else {
             return res.status(400).json({ status: 'error', ping: formatPing(0), data: [], message: 'Categoría no soportada para eldepor' });
           }
+          const lim = limit ? Math.max(1, Math.min(Number(limit), 50)) : 20;
           const rawNoticias = await scrapeDeporCategoriaCompleto(url, lim);
           noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
           const t1 = Date.now();
@@ -61,8 +61,9 @@ export default async function handler(req, res) {
           if (!url.startsWith('https://elperuano.pe/')) {
             url = `https://elperuano.pe/${url}`;
           }
-          const rawNoticias = await scrapeElPeruanoNoticiasDeSeccion(url);
-          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 })).slice(0, lim);
+          const lim = limit ? Math.max(1, Math.min(Number(limit), 50)) : 20;
+          const rawNoticias = await scrapeElPeruanoNoticiasDeSeccion(url, lim);
+          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
@@ -72,13 +73,14 @@ export default async function handler(req, res) {
             if (!/^https?:\/\//.test(catUrl)) {
               catUrl = `https://jornada.com.pe/${catUrl.replace(/^\/+/, '')}/`;
             }
-            const rawNoticias = await scrapeJornadaCategoriaSimple(catUrl);
-            noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 })).slice(0, lim);
+            const lim = limit ? Math.max(1, Math.min(Number(limit), 50)) : 20;
+            const rawNoticias = await scrapeJornadaCategoriaSimple(catUrl, lim);
+            noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
             const t1 = Date.now();
             return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
           }
           const rawNoticias = await scrapeJornada();
-          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 })).slice(0, lim);
+          noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
