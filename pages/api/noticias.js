@@ -29,8 +29,17 @@ export default async function handler(req, res) {
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: categorias });
         }
         if (site === 'jornada') {
-          const rawCategorias = await scrapeJornadaCategorias();
-          categorias = rawCategorias.map((c, idx) => ({ ...c, id: idx + 1 }));
+          // Optimiza el tiempo de respuesta usando cache temporal en memoria (5 minutos)
+          if (!global._jornadaCategoriasCache) global._jornadaCategoriasCache = { data: null, timestamp: 0 };
+          const now = Date.now();
+          const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+          if (global._jornadaCategoriasCache.data && (now - global._jornadaCategoriasCache.timestamp < CACHE_DURATION)) {
+            categorias = global._jornadaCategoriasCache.data;
+          } else {
+            const rawCategorias = await scrapeJornadaCategorias();
+            categorias = rawCategorias.map((c, idx) => ({ ...c, id: idx + 1 }));
+            global._jornadaCategoriasCache = { data: categorias, timestamp: now };
+          }
           const t1 = Date.now();
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: categorias });
         }
