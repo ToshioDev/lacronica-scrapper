@@ -173,7 +173,7 @@ export default async function handler(req, res) {
       // Si no es type esperado
       return res.status(400).json({ status: 'error', ping: formatPing(0), data: [], message: 'Tipo no soportado' });
     } catch (err) {
-      return res.status(500).json({ status: 'error', ping: formatPing(0), data: [], message: err.message });
+      return res.status(500).json({ status: 'error', ping: formatPing(0), data: [], message: err });
     }
   }
 
