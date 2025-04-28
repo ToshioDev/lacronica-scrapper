@@ -110,13 +110,9 @@ export default async function handler(req, res) {
           if (global._elperuanoNoticiasCache[cacheKey] && (now - global._elperuanoNoticiasCache[cacheKey].timestamp < CACHE_DURATION)) {
             noticias = global._elperuanoNoticiasCache[cacheKey].data;
           } else {
-            const browser = await launchBrowser();
-            const page = await browser.newPage();
-            const rawNoticias = await scrapeElPeruanoNoticiasDeSeccion(page, url, lim);
+            const rawNoticias = await scrapeElPeruanoNoticiasDeSeccion(url, lim);
             noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
             global._elperuanoNoticiasCache[cacheKey] = { data: noticias, timestamp: now };
-            await page.close();
-            await browser.close();
           }
           const t1 = Date.now();
            // --- Error Handling Start ---
