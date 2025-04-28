@@ -83,6 +83,14 @@ export default async function handler(req, res) {
             global._deporNoticiasCache[cacheKey] = { data: noticias, timestamp: now };
           }
           const t1 = Date.now();
+          // --- Error Handling Start ---
+          if (!Array.isArray(noticias)) {
+            return res.status(500).json({ status: 'error', ping: formatPing(t1 - t0), data: [], message: 'Error interno: Los datos recibidos no son un array.' });
+          }
+          if (noticias.length === 0) {
+            return res.status(404).json({ status: 'error', ping: formatPing(t1 - t0), data: [], message: 'No se encontraron noticias para esta categoría.' });
+          }
+          // --- Error Handling End ---
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
         if (site === 'elperuano') {
@@ -107,6 +115,14 @@ export default async function handler(req, res) {
             global._elperuanoNoticiasCache[cacheKey] = { data: noticias, timestamp: now };
           }
           const t1 = Date.now();
+           // --- Error Handling Start ---
+          if (!Array.isArray(noticias)) {
+            return res.status(500).json({ status: 'error', ping: formatPing(t1 - t0), data: [], message: 'Error interno: Los datos recibidos no son un array.' });
+          }
+          if (noticias.length === 0) {
+            return res.status(404).json({ status: 'error', ping: formatPing(t1 - t0), data: [], message: 'No se encontraron noticias para esta categoría.' });
+          }
+          // --- Error Handling End ---
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
         if (site === 'jornada') {
@@ -129,11 +145,27 @@ export default async function handler(req, res) {
               global._jornadaNoticiasCache[cacheKey] = { data: noticias, timestamp: now };
             }
             const t1 = Date.now();
+            // --- Error Handling Start ---
+            if (!Array.isArray(noticias)) {
+              return res.status(500).json({ status: 'error', ping: formatPing(t1 - t0), data: [], message: 'Error interno: Los datos recibidos no son un array.' });
+            }
+            if (noticias.length === 0) {
+              return res.status(404).json({ status: 'error', ping: formatPing(t1 - t0), data: [], message: 'No se encontraron noticias para esta categoría.' });
+            }
+            // --- Error Handling End ---
             return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
           }
           const rawNoticias = await scrapeJornada();
           noticias = rawNoticias.map((n, idx) => ({ ...n, id: idx + 1 }));
           const t1 = Date.now();
+          // --- Error Handling Start ---
+          if (!Array.isArray(noticias)) {
+            return res.status(500).json({ status: 'error', ping: formatPing(t1 - t0), data: [], message: 'Error interno: Los datos recibidos no son un array.' });
+          }
+          if (noticias.length === 0) {
+            return res.status(404).json({ status: 'error', ping: formatPing(t1 - t0), data: [], message: 'No se encontraron noticias para esta categoría.' });
+          }
+          // --- Error Handling End ---
           return res.status(200).json({ status: 'ok', ping: formatPing(t1 - t0), data: noticias });
         }
         return res.status(400).json({ status: 'error', ping: formatPing(0), data: [], message: 'Sitio no soportado' });
